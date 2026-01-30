@@ -13,7 +13,3 @@ def greet(name):
 user_name = input("Please enter your name: ")
 greeting_message = greet(user_name)
 print(greeting_message)
-      
-    
-
-
