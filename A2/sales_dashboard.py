@@ -1,92 +1,87 @@
+# Name: Brandon
+# Class: ITM 352
+# Assignment: Assignment 2 - Sales Dashboard
+#
+# Description:
+# This program loads a sales dataset from a CSV file and provides an interactive
+# command-line dashboard. Users can analyze the data using predefined pivot tables
+# or create custom pivot tables. The program also allows exporting results to Excel
+# and storing previously generated analytics for later viewing.
+
 import pandas as pd
 import time
 import sys
 
-# Show all columns and use full terminal width when printing DataFrames
+# These settings make sure pandas prints full tables instead of cutting off columns
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", None)
 
 
+# ---------------------------
+# Data Loading Function
+# ---------------------------
 def load_csv(file_path):
+    """
+    Loads the CSV file into a pandas DataFrame.
+    Displays load time, row count, and column names.
+    Replaces missing values with 0 to avoid issues in pivot tables.
+    """
     print(f"\nLoading file: {file_path} ...")
     start_time = time.time()
 
     try:
         data = pd.read_csv(file_path)
     except Exception as e:
-        print(f"Error: Could not load file. {e}")
+        print(f"Error loading file: {e}")
         sys.exit()
 
     end_time = time.time()
 
     print("File loaded successfully.")
     print(f"Load time: {end_time - start_time:.2f} seconds")
-    print(f"Rows loaded: {len(data)}")
-    print("Columns:")
-    print(list(data.columns))
+    print(f"Rows: {len(data)}")
+    print("Columns:", list(data.columns))
 
-    # Replace missing values with 0
-    data = data.fillna(0)
-
-    required_columns = [
-        "sales_region",
-        "order_type",
-        "customer_type",
-        "customer_state",
-        "product_category",
-        "quantity",
-        "unit_price",
-        "employee_name"
-    ]
-
-    missing_columns = [col for col in required_columns if col not in data.columns]
-
-    if missing_columns:
-        print("\nWarning: Missing required columns:")
-        for col in missing_columns:
-            print(f"- {col}")
-        print("Some analytics may not work.\n")
-
-    return data
+    # Replace missing values so analytics don't break
+    return data.fillna(0)
 
 
+# ---------------------------
+# Preview Data
+# ---------------------------
 def display_initial_rows(data):
+    """
+    Allows the user to preview the dataset.
+    User can enter a number, 'all', or skip.
+    """
     total_rows = len(data)
 
-    print(f"\nEnter rows to display:")
-    print(f"- Enter a number from 1 to {total_rows}")
-    print("- Enter 'all' to display all rows")
-    print("- Press Enter to skip preview")
-
-    choice = input("Your choice: ").strip()
+    choice = input(f"\nEnter rows (1–{total_rows}), 'all', or Enter: ").strip()
 
     if choice == "":
-        print("Skipping preview.")
-        return
+        return None
 
     if choice.lower() == "all":
-        print("\nFirst rows of sales data:")
         print(data.to_string())
-        return
+        return data
 
     if choice.isdigit():
-        num = int(choice)
-        if 1 <= num <= total_rows:
-            print("\nFirst rows of sales data:")
-            print(data.head(num).to_string())
-        else:
-            print("Invalid row number.")
-    else:
-        print("Invalid input.")
+        n = int(choice)
+        if 1 <= n <= total_rows:
+            result = data.head(n)
+            print(result.to_string())
+            return result
+
+    print("Invalid input.")
+    return None
 
 
+# ---------------------------
+# Predefined Analytics
+# ---------------------------
+
+# Total sales grouped by region and order type
 def total_sales_by_region_order_type(data):
-    required = ["sales_region", "order_type", "unit_price"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index="sales_region",
@@ -95,18 +90,12 @@ def total_sales_by_region_order_type(data):
         aggfunc="sum",
         fill_value=0
     )
-
-    print("\nTotal sales by region and order type:")
     print(pivot.to_string())
+    return pivot
 
 
+# Average sales grouped by region, state, and order type
 def average_sales_by_region_state_sale_type(data):
-    required = ["sales_region", "customer_state", "order_type", "unit_price"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index="sales_region",
@@ -115,18 +104,12 @@ def average_sales_by_region_state_sale_type(data):
         aggfunc="mean",
         fill_value=0
     )
-
-    print("\nAverage sales by region with average sales by state and sale type:")
     print(pivot.to_string())
+    return pivot
 
 
+# Sales grouped by customer type and order type per state
 def sales_by_customer_type_order_type_by_state(data):
-    required = ["customer_state", "customer_type", "order_type", "unit_price"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index="customer_state",
@@ -135,18 +118,12 @@ def sales_by_customer_type_order_type_by_state(data):
         aggfunc="sum",
         fill_value=0
     )
-
-    print("\nSales by customer type and order type by state:")
     print(pivot.to_string())
+    return pivot
 
 
+# Total quantity and price grouped by region and product
 def total_sales_quantity_price_by_region_product(data):
-    required = ["sales_region", "product_category", "quantity", "unit_price"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index=["sales_region", "product_category"],
@@ -154,18 +131,12 @@ def total_sales_quantity_price_by_region_product(data):
         aggfunc="sum",
         fill_value=0
     )
-
-    print("\nTotal sales quantity and price by region and product:")
     print(pivot.to_string())
+    return pivot
 
 
+# Total quantity and price grouped by customer type
 def total_sales_quantity_price_by_customer_type(data):
-    required = ["customer_type", "quantity", "unit_price"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index="customer_type",
@@ -173,18 +144,12 @@ def total_sales_quantity_price_by_customer_type(data):
         aggfunc="sum",
         fill_value=0
     )
-
-    print("\nTotal sales quantity and price by customer type:")
     print(pivot.to_string())
+    return pivot
 
 
+# Max and min price per product category
 def max_min_sales_price_by_category(data):
-    required = ["product_category", "unit_price"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index="product_category",
@@ -192,18 +157,12 @@ def max_min_sales_price_by_category(data):
         aggfunc=["max", "min"],
         fill_value=0
     )
-
-    print("\nMax and min sales price by category:")
     print(pivot.to_string())
+    return pivot
 
 
+# Count unique employees in each region
 def number_of_unique_employees_by_region(data):
-    required = ["sales_region", "employee_name"]
-    for col in required:
-        if col not in data.columns:
-            print(f"Cannot run this analytic. Missing column: {col}")
-            return
-
     pivot = pd.pivot_table(
         data,
         index="sales_region",
@@ -211,61 +170,55 @@ def number_of_unique_employees_by_region(data):
         aggfunc=pd.Series.nunique,
         fill_value=0
     )
-
-    print("\nNumber of unique employees by region:")
     print(pivot.to_string())
+    return pivot
 
 
+# ---------------------------
+# Custom Pivot Table Builder
+# ---------------------------
+
+# Handles user input selection for rows, columns, values, etc.
 def get_user_selection(options, prompt, allow_empty=False):
     print(f"\n{prompt}")
-    for i, option in enumerate(options, start=1):
-        print(f"{i}. {option}")
+    for i, opt in enumerate(options, 1):
+        print(f"{i}. {opt}")
 
-    choice = input("Enter number(s) separated by commas: ").strip()
+    choice = input("Enter numbers separated by commas: ").strip()
 
     if choice == "":
-        if allow_empty:
-            return []
-        print("You must choose at least one option.")
-        return None
+        return [] if allow_empty else None
 
     try:
-        selected_indexes = [int(x.strip()) - 1 for x in choice.split(",")]
-        selected_items = []
-
-        for index in selected_indexes:
-            if index < 0 or index >= len(options):
-                print("Invalid selection.")
-                return None
-            selected_items.append(options[index])
-
-        return selected_items
-    except ValueError:
+        return [options[int(x.strip()) - 1] for x in choice.split(",")]
+    except:
         print("Invalid input.")
         return None
 
 
+# Builds a pivot table based on user-selected fields
 def generate_custom_pivot_table(data):
-    row_options = list(data.columns)
-    value_options = list(data.select_dtypes(include=["number"]).columns)
-    agg_options = ["sum", "mean", "count"]
+    rows = get_user_selection(list(data.columns), "Select rows:")
+    if not rows:
+        print("Must select at least one row.")
+        return None
 
-    rows = get_user_selection(row_options, "Select rows:", allow_empty=False)
-    if rows is None:
-        return
+    cols = get_user_selection(
+        [c for c in data.columns if c not in rows],
+        "Select columns (optional):",
+        True
+    )
 
-    col_options = [col for col in row_options if col not in rows]
-    cols = get_user_selection(col_options, "Select columns (optional):", allow_empty=True)
-    if cols is None:
-        return
+    values = get_user_selection(
+        list(data.select_dtypes(include=["number"]).columns),
+        "Select values:"
+    )
 
-    values = get_user_selection(value_options, "Select values:", allow_empty=False)
-    if values is None:
-        return
+    agg = get_user_selection(["sum", "mean", "count"], "Select aggregation:")
 
-    agg = get_user_selection(agg_options, "Select aggregation function:", allow_empty=False)
-    if agg is None:
-        return
+    if not values or not agg:
+        print("Invalid selection.")
+        return None
 
     try:
         pivot = pd.pivot_table(
@@ -279,56 +232,102 @@ def generate_custom_pivot_table(data):
 
         print("\nCustom Pivot Table:")
         print(pivot.to_string())
-    except Exception as e:
-        print(f"Error creating pivot table: {e}")
+        return pivot
+
+    # Prevent crash on invalid combinations
+    except:
+        print("\nInvalid combination. Try fewer fields.")
+        return None
 
 
+# ---------------------------
+# Extra Features
+# ---------------------------
+
+# Allows user to export results to Excel
+def export_to_excel(pivot):
+    if input("Export to Excel? (y/n): ").lower() == "y":
+        filename = input("Filename: ")
+        try:
+            pivot.to_excel(filename)
+            print("Saved.")
+        except Exception as e:
+            print("Export failed:", e)
+
+
+# Displays stored analytics results
+def show_stored_results(data, stored_results):
+    if not stored_results:
+        print("No stored results.")
+        return
+
+    for k, v in stored_results.items():
+        print(f"\nResult {k}:")
+        print(v.to_string())
+
+
+# Exit function
 def exit_program(data):
-    print("Exiting program.")
     sys.exit()
 
 
+# ---------------------------
+# Menu System
+# ---------------------------
+
+# Displays menu and returns selected option index
 def display_menu(menu_options):
     print("\n--- Sales Data Dashboard ---")
-    for i, (menu_text, _) in enumerate(menu_options, start=1):
-        print(f"{i}. {menu_text}")
+    for i, (text, _) in enumerate(menu_options, 1):
+        print(f"{i}. {text}")
 
-    choice = input("Select an option: ").strip()
+    choice = input("Select option: ")
 
-    if not choice.isdigit():
-        print("Invalid input. Enter a number.")
-        return None
+    if choice.isdigit():
+        choice = int(choice)
+        if 1 <= choice <= len(menu_options):
+            return choice - 1
 
-    choice = int(choice)
-
-    if 1 <= choice <= len(menu_options):
-        return choice - 1
-
-    print("Invalid menu choice.")
+    print("Invalid choice")
     return None
 
 
+# ---------------------------
+# Main Program Loop
+# ---------------------------
 def main():
-    file_name = input("Enter CSV file name: ").strip()
+    file_name = input("Enter CSV file name: ")
     data = load_csv(file_name)
 
+    # Stores results of analytics so user can view later
+    stored_results = {}
+
+    # Menu structure maps text to functions
     menu_options = (
-        ("Show the first n rows of sales data", display_initial_rows),
-        ("Total sales by region and order_type", total_sales_by_region_order_type),
-        ("Average sales by region with average sales by state and sale type", average_sales_by_region_state_sale_type),
-        ("Sales by customer type and order type by state", sales_by_customer_type_order_type_by_state),
-        ("Total sales quantity and price by region and product", total_sales_quantity_price_by_region_product),
-        ("Total sales quantity and price by customer type", total_sales_quantity_price_by_customer_type),
-        ("Max and min sales price by category", max_min_sales_price_by_category),
-        ("Number of unique employees by region", number_of_unique_employees_by_region),
-        ("Create a custom pivot table", generate_custom_pivot_table),
+        ("Show rows", display_initial_rows),
+        ("Total sales by region/order type", total_sales_by_region_order_type),
+        ("Average sales by region/state/type", average_sales_by_region_state_sale_type),
+        ("Sales by customer/order/state", sales_by_customer_type_order_type_by_state),
+        ("Quantity & price by region/product", total_sales_quantity_price_by_region_product),
+        ("Quantity & price by customer", total_sales_quantity_price_by_customer_type),
+        ("Max/min price by category", max_min_sales_price_by_category),
+        ("Unique employees by region", number_of_unique_employees_by_region),
+        ("Custom pivot table", generate_custom_pivot_table),
+        ("Show stored results", lambda d: show_stored_results(d, stored_results)),
         ("Exit", exit_program)
     )
 
+    # Runs continuously until user exits
     while True:
         selection = display_menu(menu_options)
+
         if selection is not None:
-            menu_options[selection][1](data)
+            result = menu_options[selection][1](data)
+
+            # Store result and optionally export
+            if result is not None:
+                stored_results[len(stored_results) + 1] = result
+                export_to_excel(result)
 
 
 if __name__ == "__main__":
