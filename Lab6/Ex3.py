@@ -1,5 +1,20 @@
-from ITM352_S26.Lab6.Ex2 import determine_progress1
+def determine_progress1(hits, spins):
+    if spins == 0:
+        return "Get going!"
+    
+    hits_spins_ratio = hits / spins
 
+    if hits_spins_ratio > 0:
+        progress = "On your way!"
+        if hits_spins_ratio >= 0.25:
+            progress = "Almost there!"
+            if hits_spins_ratio >= 0.5:
+                if hits < spins:
+                    progress = "You win!"
+    else:
+        progress = "Get going!"
+
+    return progress
 
 def test_determine_progress(progress_function):
     """Test all possible return values of the determine_progress function.
@@ -41,4 +56,42 @@ def test_determine_progress(progress_function):
 
 # Test the function
 if __name__ == "__main__":
-    test_determine_progress(determine_progress1) 
+    test_determine_progress(determine_progress1)
+
+
+
+def determine_progress3(hits, spins):
+    if spins == 0:
+        return "Get going!"
+
+    ratio = hits / spins
+
+    if ratio <= 0:
+        return "Get going!"
+    elif ratio < 0.25:
+        return "On your way!"
+    elif ratio < 0.5:
+        return "Almost there!"
+    else:
+        if hits < spins:
+            return "You win!"
+        return "Almost there!"
+
+test_determine_progress(determine_progress3)
+
+def determine_progress_no_if(hits, spins):
+    messages = ["Get going!", "On your way!", "Almost there!", "You win!"]
+    
+    denom = spins if spins != 0 else 1
+    ratio = hits / denom
+    spins_nonzero = int(spins != 0)
+
+    level = 0
+    level += spins_nonzero * int(ratio > 0)
+    level += spins_nonzero * int(ratio >= 0.25)
+    level += spins_nonzero * int(ratio >= 0.5)
+    level = level - (int(level == 3) * int(not (hits < spins)))
+
+    return messages[level]
+
+test_determine_progress(determine_progress_no_if)

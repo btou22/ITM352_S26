@@ -10,3 +10,5 @@
 response_values = [(1012, 5), (1035, 7), (1021, 3), (1053, 8)]
 response_values.sort()
 print("Sorted survey responses with respondent IDs:", response_values)
+
+

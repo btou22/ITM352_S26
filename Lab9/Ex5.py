@@ -1,0 +1,17 @@
+import json
+
+QUESTIONS = { 
+    "Who is the South Park character that likes Cheesy Poofs? ": (["Cartman", "Stan", "Kyle", "Kenny"], "Because Cartman loves to eat Cheesy Poofs."),
+    "What state is South Park in? ": (["Colorado", "California", "Texas", "New York"], "South Park is located in Colorado."),
+    "Who is the South Park character that has a dad who is a geologist? ": (["Stan", "Cartman", "Kyle", "Kenny"], "Stan's dad is shown as a geologist in the earlier seasons."),
+    "What is the name of Kyle's little brother? ": (["Ike", "Stan Jr.", "Cartman Jr.", "Kenny Jr."], "Kyle's little brother is Ike."),
+    "Who is the South Park character that has a green hat? ": (["Kyle", "Cartman", "Stan", "Kenny"], "Kyle often wears a bright green hat."),
+    "What is the name of the teacher in South Park? ": (["Mr. Garrison", "Mr. Mackey", "Mr. Hankey", "Mr. Marsh"], "The teacher in South Park is shown asMr. Garrison."),
+    "Who is the South Park character that always mumbles? ": (["Kenny", "Cartman", "Stan", "Kyle"], "Kenny wears a parka that covers his mouth, causing him to mumble when he talks."),
+}
+
+filename = "quiz_data.json"
+
+with open(filename, "w") as jsonfile:
+    json.dump(QUESTIONS, jsonfile, indent=4)
+print(f"Quiz data has been written to {filename}.")

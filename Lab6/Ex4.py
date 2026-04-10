@@ -17,6 +17,9 @@ def isLeapYear(year):
         return "Leap year"
     return "Not a leap year"
 
+print(isLeapYear(2003))  # Not a leap year
+print(isLeapYear(2004))  # Leap year
+
 # Tests (replace with your birth year and closest leap year)
 birth_year = 2003
 closest_leap_year = 2004
