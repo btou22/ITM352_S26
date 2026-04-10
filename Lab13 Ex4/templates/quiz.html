@@ -1,0 +1,10 @@
+<h2>Question {{ q_number }}</h2>
+<p>{{ question }}</p>
+
+<form method="post">
+    {% for key, value in choices.items() %}
+        <input type="radio" name="answer" value="{{ key }}" required>
+        {{ key }}. {{ value }} <br>
+    {% endfor %}
+    <button type="submit">Submit</button>
+</form>
