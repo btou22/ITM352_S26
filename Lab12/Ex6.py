@@ -1,6 +1,3 @@
-# Name: Cassiddy Ginoza
-# Date: Apr. 7, 2026
-
 # use requests package to retrieve page of mortgage rate info and extract each row.
 
 import pandas as pd
