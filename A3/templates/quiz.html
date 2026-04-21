@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+
+    <h3>Question {{ current_question }} of {{ total_questions }}</h3>
+    <progress value="{{ current_question }}" max="{{ total_questions }}"></progress>
+
+    {% if explanation %}
+
+        <h2>{{ result }}</h2>
+        <p>{{ explanation }}</p>
+
+        <form method="POST">
+            <button type="submit" name="next">Next</button>
+        </form>
+
+    {% else %}
+
+        <h2>{{ question.question }}</h2>
+
+        <form method="POST">
+            {% for choice in choices %}
+                <label>
+                    <input type="radio" name="answer" value="{{ choice }}" required>
+                    {{ choice }}
+                </label><br>
+            {% endfor %}
+
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+
+    {% endif %}
+
+</body>
+</html>

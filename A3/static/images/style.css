@@ -1,0 +1,10 @@
+#FAILED ATTEMPT AT ADDING A WALLPAPER TO MY QUIZ HAHA
+
+
+body {
+    background-image: url("/static/images/adventure_time_bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}

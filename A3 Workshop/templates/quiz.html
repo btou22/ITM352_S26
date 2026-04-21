@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+
+    <h1>{{ question.question }}</h1>
+
+    <form method="POST">
+
+        {% for option in question.options %}
+            <input type="radio" name="answer" value="{{ option }}" {% if option == request.form['answer'] %}checked{% endif %}>
+            {{ option }}<br>
+        {% endfor %}
+
+        <button type="submit">Submit Answer</button>
+    </form>
+
+</body>
+</html>

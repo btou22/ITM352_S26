@@ -1,0 +1,44 @@
+[
+    {
+        "question": "Who is the main human character in Adventure Time?",
+        "choices": ["Finn", "Jake", "Ice King", "Marceline"],
+        "answer": "Finn",
+        "explanation": "Finn is the main human hero in Adventure Time."
+    },
+    {
+        "question": "What kind of animal is Jake?",
+        "choices": ["Dog", "Cat", "Bear", "Fox"],
+        "answer": "Dog",
+        "explanation": "Jake is a magical dog with shape-shifting abilities."
+    },
+    {
+        "question": "What is the name of the Ice King's kidnapped princess?",
+        "choices": ["Princess Bubblegum", "Princess Peach", "Flame Princess", "Lumpy Space Princess"],
+        "answer": "Princess Bubblegum",
+        "explanation": "The Ice King frequently kidnaps Princess Bubblegum."
+    },
+    {
+        "question": "What is the name of the land where Adventure Time takes place?",
+        "choices": ["Land of Ooo", "Candy Kingdom", "Dreamland", "Ice Kingdom"],
+        "answer": "Land of Ooo",
+        "explanation": "The show is set in the post-apocalyptic Land of Ooo."
+    },
+    {
+        "question": "Who is the vampire queen in Adventure Time?",
+        "choices": ["Marceline", "Bubblegum", "Flame Princess", "Tree Trunks"],
+        "answer": "Marceline",
+        "explanation": "Marceline the Vampire Queen is a major character in the series."
+    },
+    {
+        "question": "What is Finn's signature weapon?",
+        "choices": ["Sword", "Bow", "Hammer", "Staff"],
+        "answer": "Sword",
+        "explanation": "Finn is known for using various swords throughout the series."
+    },
+    {
+        "question": "Who rules the Candy Kingdom?",
+        "choices": ["Princess Bubblegum", "Ice King", "Marceline", "Jake"],
+        "answer": "Princess Bubblegum",
+        "explanation": "Princess Bubblegum is the ruler of the Candy Kingdom."
+    }
+]
