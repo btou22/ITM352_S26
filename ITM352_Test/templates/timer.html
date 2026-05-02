@@ -1,0 +1,17 @@
+<!-- main match timer with controls -->
+<!-- dropdown lets the referee pick match length before it starts (Ethan)-->
+<div class="timer-card">
+  <div id="timer-display">4:00</div>
+  <div id="status-label">READY</div>
+  <div class="timer-controls">
+    <select id="duration-select" onchange="setDuration(this.value)">
+      <option value="120">2 min</option>
+      <option value="180">3 min</option>
+      <option value="240" selected>4 min</option>
+      <option value="300">5 min</option>
+    </select>
+    <button class="btn btn-yellow"  onclick="toggleTimer()">Start / Pause</button>
+    <button class="btn btn-outline" onclick="resetTimer()">Reset Timer</button>
+    <button class="btn btn-gold"    onclick="goldenScore()">⚡ Golden Score</button>
+  </div>
+</div>

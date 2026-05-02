@@ -1,0 +1,29 @@
+#Ethan Mayer 
+#1 May 2026
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Judo Scoreboard</title>
+  {% include 'styles.html' %}
+</head>
+<body>
+
+  {% include 'header.html' %}
+  {% include 'setup.html' %}
+
+  <div id="winner-banner"></div>
+
+  {% include 'timer.html' %}
+  {% include 'players.html' %}
+  {% include 'panels.html' %}
+  {% include 'actions.html' %}
+  {% include 'history.html' %}
+
+  {% include 'scripts.html' %}
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- log of every action taken during the match -->
+<!-- newest action always shows at the top -->
+<div class="history-panel">
+  <div class="history-header">
+    <span class="panel-title" style="margin:0">Match Actions</span>
+    <!-- undo removes the last action in case the referee made a mistake -->
+    <button class="btn btn-outline" style="padding:6px 14px; font-size:0.75rem;" onclick="undoAction()">↩ Undo</button>
+  </div>
+  <ul id="history-list">
+    <li id="no-history">No actions recorded yet</li>
+  </ul>
+</div>
