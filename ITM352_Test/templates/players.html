@@ -1,0 +1,105 @@
+<!-- two player score panels side by side (Cass)(Brandon)-->
+<div class="players-grid">
+
+  <!-- blue player on the left -->
+  <div class="player-card blue" id="card-a">
+    <div class="player-header">
+      <div class="player-name" id="name-a">Blue</div>
+      <div class="player-club"  id="club-a"></div>
+    </div>
+    <div class="score-rows">
+      <!-- each row has a minus button, the current value, and a plus button -->
+      <div class="score-row">
+        <span class="score-label">Ippon</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('a','ippon',-1)">−</button>
+          <div class="score-val" id="a-ippon">0</div>
+          <button class="score-btn" onclick="updateScore('a','ippon',1)">+</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Waza-ari</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('a','waza_ari',-1)">−</button>
+          <div class="score-val" id="a-waza_ari">0</div>
+          <button class="score-btn" onclick="updateScore('a','waza_ari',1)">+</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Yuko</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('a','yuko',-1)">−</button>
+          <div class="score-val" id="a-yuko">0</div>
+          <button class="score-btn" onclick="updateScore('a','yuko',1)">+</button>
+        </div>
+      </div>
+      <!-- shido uses pip circles instead of a number -->
+      <div class="score-row">
+        <span class="score-label">Shido</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('a','shido',-1)">−</button>
+          <div class="shido-pips">
+            <div class="pip" id="a-shido-0"></div>
+            <div class="pip" id="a-shido-1"></div>
+            <div class="pip" id="a-shido-2"></div>
+          </div>
+          <button class="score-btn" onclick="updateScore('a','shido',1)">+</button>
+        </div>
+      </div>
+    </div>
+    <!-- lights up red when hansoku-make is triggered -->
+    <button class="hansoku-btn" id="a-hansoku" onclick="updateScore('a','hansoku_make',1)">
+      ⚠ Hansoku-Make (Direct)
+    </button>
+  </div>
+
+  <!-- white player on the right -->
+  <div class="player-card white" id="card-b">
+    <div class="player-header">
+      <div class="player-name" id="name-b">White</div>
+      <div class="player-club"  id="club-b"></div>
+    </div>
+    <div class="score-rows">
+      <div class="score-row">
+        <span class="score-label">Ippon</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('b','ippon',-1)">−</button>
+          <div class="score-val" id="b-ippon">0</div>
+          <button class="score-btn" onclick="updateScore('b','ippon',1)">+</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Waza-ari</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('b','waza_ari',-1)">−</button>
+          <div class="score-val" id="b-waza_ari">0</div>
+          <button class="score-btn" onclick="updateScore('b','waza_ari',1)">+</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Yuko</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('b','yuko',-1)">−</button>
+          <div class="score-val" id="b-yuko">0</div>
+          <button class="score-btn" onclick="updateScore('b','yuko',1)">+</button>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Shido</span>
+        <div class="score-controls">
+          <button class="score-btn" onclick="updateScore('b','shido',-1)">−</button>
+          <div class="shido-pips">
+            <div class="pip" id="b-shido-0"></div>
+            <div class="pip" id="b-shido-1"></div>
+            <div class="pip" id="b-shido-2"></div>
+          </div>
+          <button class="score-btn" onclick="updateScore('b','shido',1)">+</button>
+        </div>
+      </div>
+    </div>
+    <button class="hansoku-btn" id="b-hansoku" onclick="updateScore('b','hansoku_make',1)">
+      ⚠ Hansoku-Make (Direct)
+    </button>
+  </div>
+
+</div>
