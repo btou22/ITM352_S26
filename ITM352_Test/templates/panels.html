@@ -1,0 +1,39 @@
+<!-- osae-komi and injury timers sitting side by side (Ethan) -->
+<div class="bottom-grid">
+
+  <!-- pin hold timer — awards points automatically at 10s, 15s, and 20s -->
+  <div class="panel">
+    <div class="panel-title">🔒 Osae-Komi (Pin Hold)</div>
+    <div id="ok-seconds">0s</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="ok-bar" style="width:0%"></div>
+    </div>
+    <!-- threshold labels so the referee knows whats coming -->
+    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#555;">
+      <span>0s</span><span>10s Yuko</span><span>15s W-A</span><span>20s Ippon</span>
+    </div>
+    <div class="panel-btns">
+      <button class="btn btn-green"   onclick="startOsaeKomi('a')">Blue Pin</button>
+      <button class="btn btn-red"     onclick="startOsaeKomi('b')">White Pin</button>
+      <button class="btn btn-outline" onclick="stopOsaeKomi()">Stop</button>
+      <button class="btn btn-outline" onclick="resetOsaeKomi()">Reset</button>
+    </div>
+  </div>
+
+  <!-- injury timer — max allowed is 5 minutes per IJF rules -->
+  <div class="panel">
+    <div class="panel-title">🩹 Injury Time</div>
+    <div id="injury-display">0:00</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="injury-bar" style="width:0%"></div>
+    </div>
+    <div style="text-align:right; font-size:0.65rem; color:#555;">max 5:00</div>
+    <div class="panel-btns">
+      <button class="btn btn-green"   onclick="startInjury('a')">Blue</button>
+      <button class="btn btn-red"     onclick="startInjury('b')">White</button>
+      <button class="btn btn-outline" onclick="stopInjury()">Stop</button>
+      <button class="btn btn-outline" onclick="resetInjury()">Reset</button>
+    </div>
+  </div>
+
+</div>

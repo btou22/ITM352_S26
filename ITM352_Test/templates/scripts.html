@@ -1,0 +1,156 @@
+<script>
+  // (Cassiddy) (Ethan)this whole section runs in the browser
+  // it sends button clicks to flask and updates the page with whatever flask sends back
+
+  // turns raw seconds into M:SS format — so 93 becomes 1:33
+  function formatTime(seconds) {
+    const m = Math.floor(Math.abs(seconds) / 60);
+    const s = Math.abs(seconds) % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // sends a POST request to flask and refreshes the display with the response
+  async function post(url) {
+    const res = await fetch(url, { method: 'POST' });
+    const data = await res.json();
+    updateDisplay(data);
+  }
+
+  // takes the full match state from flask and updates everything on the page
+  function updateDisplay(s) {
+
+    // update names and clubs at the top of each player card
+    document.getElementById('name-a').textContent = s.player_a.name;
+    document.getElementById('club-a').textContent = s.player_a.club;
+    document.getElementById('name-b').textContent = s.player_b.name;
+    document.getElementById('club-b').textContent = s.player_b.club;
+
+    // update declare winner buttons to show actual player names
+    document.getElementById('declare-a').textContent = s.player_a.name + ' Wins';
+    document.getElementById('declare-b').textContent = s.player_b.name + ' Wins';
+
+    // loop through both players and update all their scores
+    ['a', 'b'].forEach(p => {
+      const sc = s[`player_${p}`].score;
+      document.getElementById(`${p}-ippon`).textContent    = sc.ippon;
+      document.getElementById(`${p}-waza_ari`).textContent = sc.waza_ari;
+      document.getElementById(`${p}-yuko`).textContent     = sc.yuko;
+
+      // fill in shido circles based on current count
+      for (let i = 0; i < 3; i++) {
+        const pip = document.getElementById(`${p}-shido-${i}`);
+        pip.classList.toggle('active', i < sc.shido);
+      }
+
+      // light up hansoku-make button red if its triggered
+      document.getElementById(`${p}-hansoku`).classList.toggle('active', sc.hansoku_make);
+    });
+
+    // update the main timer
+    const timer = s.timer;
+    const timerEl = document.getElementById('timer-display');
+    timerEl.textContent = formatTime(timer.seconds_left);
+    timerEl.className = '';
+    if (timer.golden_score) {
+      timerEl.classList.add('golden'); // gold during golden score
+    } else if (timer.seconds_left <= 30 && timer.seconds_left > 0) {
+      timerEl.classList.add('low'); // red when under 30 seconds
+    }
+
+    // update the status label under the timer
+    const labels = { not_started: 'READY', active: 'RUNNING', paused: 'PAUSED', completed: 'ENDED' };
+    document.getElementById('status-label').textContent =
+      timer.golden_score && s.status !== 'completed' ? 'GOLDEN SCORE' : (labels[s.status] || s.status.toUpperCase());
+
+    // update the osae-komi counter and progress bar
+    const ok = s.osae_komi;
+    document.getElementById('ok-seconds').textContent = ok.seconds + 's';
+    document.getElementById('ok-bar').style.width = Math.min((ok.seconds / 20) * 100, 100) + '%';
+
+    // update injury timer and progress bar — turns red when near the 5 minute limit
+    const inj = s.injury;
+    document.getElementById('injury-display').textContent = formatTime(inj.seconds);
+    document.getElementById('injury-bar').style.width = Math.min((inj.seconds / 300) * 100, 100) + '%';
+    document.getElementById('injury-bar').classList.toggle('warning', inj.seconds >= 240);
+
+    // show the winner banner when the match ends
+    const banner = document.getElementById('winner-banner');
+    if (s.winner) {
+      const winName = s.winner === 'a' ? s.player_a.name : s.player_b.name;
+      const side    = s.winner === 'a' ? 'Blue' : 'White';
+      banner.textContent   = `🏆 ${winName} (${side}) Wins!`;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+
+    // rebuild the history list with the latest actions
+    const list = document.getElementById('history-list');
+    if (s.history.length === 0) {
+      list.innerHTML = '<li id="no-history">No actions recorded yet</li>';
+    } else {
+      list.innerHTML = s.history.map(h => `
+        <li>
+          <span class="hist-action">${h.action}</span>
+          ${h.player ? `<span class="hist-player">${h.player === 'a' ? 'Blue' : 'White'}</span>` : ''}
+          <span class="hist-time">${h.time}</span>
+        </li>
+      `).join('');
+    }
+  }
+
+  // each function below matches a button on the page
+  function setPlayers() {
+    fetch('/set_players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        player_a_name: document.getElementById('pa-name').value || 'Blue',
+        player_a_club: document.getElementById('pa-club').value,
+        player_b_name: document.getElementById('pb-name').value || 'White',
+        player_b_club: document.getElementById('pb-club').value
+      })
+    }).then(r => r.json()).then(updateDisplay);
+  }
+
+  function updateScore(player, field, delta) { post(`/score/${player}/${field}/${delta}`); }
+  function toggleTimer()    { post('/timer/toggle'); }
+  function resetTimer()     { post('/timer/reset'); }
+  function goldenScore()    { post('/golden_score'); }
+  function declareWinner(p) { post(`/declare_winner/${p}`); }
+  function resetMatch()     { post('/reset'); }
+  function undoAction()     { post('/undo'); }
+
+  function setDuration(val) {
+    fetch('/timer/set_duration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ duration: parseInt(val) })
+    }).then(r => r.json()).then(updateDisplay);
+  }
+
+  function startOsaeKomi(p) { post(`/osae_komi/start/${p}`); }
+  function stopOsaeKomi()   { post('/osae_komi/stop'); }
+  function resetOsaeKomi()  { post('/osae_komi/reset'); }
+  function startInjury(p)   { post(`/injury/start/${p}`); }
+  function stopInjury()     { post('/injury/stop'); }
+  function resetInjury()    { post('/injury/reset'); }
+
+  // this runs every second automatically in the background
+  // checks which timers are active and advances them
+  // this is what makes the scoreboard feel live without refreshing
+  setInterval(async () => {
+    const stateRes = await fetch('/state');
+    const s = await stateRes.json();
+
+    if (s.status === 'active')  await fetch('/timer/tick',     { method: 'POST' });
+    if (s.osae_komi.active)     await fetch('/osae_komi/tick', { method: 'POST' });
+    if (s.injury.active)        await fetch('/injury/tick',    { method: 'POST' });
+
+    const updated = await fetch('/state');
+    updateDisplay(await updated.json());
+  }, 1000);
+
+  // loads the current match state when the page first opens
+  fetch('/state').then(r => r.json()).then(updateDisplay);
+</script>
