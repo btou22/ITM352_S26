@@ -1,0 +1,147 @@
+<style>
+
+  /* resetting default browser styles so nothing looks weird like earlier lol (Brandon)*/
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* dark background makes it feel like a real scoreboard */
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0d1117;
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* page title at the top — yellow matches the judo gold theme */
+  header { text-align: center; padding: 16px 0 24px; }
+  header h1 { font-size: 2rem; font-weight: 800; letter-spacing: 0.1em; color: #FFD600; }
+  header p { font-size: 0.75rem; color: #555; letter-spacing: 0.3em; text-transform: uppercase; margin-top: 4px; }
+
+  /* setup form where the referee enters player names before the match */
+  .setup-form {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 700px;
+    margin: 0 auto 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .setup-form .field { display: flex; flex-direction: column; gap: 4px; }
+  .setup-form label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
+  .setup-form input {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: white;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    width: 160px;
+  }
+  .setup-form button { padding: 9px 20px; background: #238636; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .setup-form button:hover { background: #2ea043; }
+
+  /* big clock in the center — large font so its readable from across the room */
+  .timer-card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 24px; max-width: 700px; margin: 0 auto 20px; text-align: center; }
+  #timer-display { font-size: 6rem; font-weight: 900; font-family: monospace; color: white; line-height: 1; }
+
+  /* clock turns red when under 30 seconds, gold during golden score */
+  #timer-display.low    { color: #ff4444; }
+  #timer-display.golden { color: #FFD600; }
+  #status-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3em; color: #555; margin-top: 8px; }
+
+  /* timer buttons — different colors so the referee can find them fast */
+  .timer-controls { display: flex; justify-content: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .timer-controls button, .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: opacity 0.2s; }
+  .btn-yellow  { background: #FFD600; color: #111; }
+  .btn-outline { background: transparent; border: 1px solid #30363d; color: white; }
+  .btn-gold    { background: transparent; border: 1px solid #FFD600; color: #FFD600; }
+  .btn-red     { background: #da3633; color: white; }
+  .btn-green   { background: #238636; color: white; }
+  button:hover { opacity: 0.85; }
+
+  /* dropdown for picking match duration */
+  #duration-select { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; color: white; padding: 8px 12px; font-size: 0.85rem; }
+
+  /* two player panels side by side — blue left, white right */
+  .players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto 20px; }
+  .player-card { border-radius: 16px; overflow: hidden; border: 1px solid transparent; }
+  .player-card.blue  { background: #0a1628; border-color: #1e3a5f; }
+  .player-card.white { background: #1a0808; border-color: #5f1e1e; }
+
+  /* player name section at the top of each card */
+  .player-header { padding: 16px 20px 12px; }
+  .player-card.blue  .player-header { background: #0d1f3c; }
+  .player-card.white .player-header { background: #220a0a; }
+  .player-name { font-size: 1.4rem; font-weight: 900; letter-spacing: 0.05em; }
+  .player-card.blue  .player-name { color: #60a5fa; }
+  .player-card.white .player-name { color: #f87171; }
+  .player-club { font-size: 0.75rem; color: #555; margin-top: 2px; }
+
+  /* each scoring category gets its own row with minus value and plus */
+  .score-rows { padding: 8px 20px 12px; }
+  .score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+  .score-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+  .score-controls { display: flex; align-items: center; gap: 10px; }
+  .score-btn { width: 28px; height: 28px; border-radius: 6px; border: none; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .score-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+
+  /* box that shows the current score number */
+  .score-val { width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,0.3); font-family: monospace; font-size: 1.2rem; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+
+  /* shido uses three circles instead of a number so its more visual */
+  .shido-pips { display: flex; gap: 5px; }
+  .pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); background: transparent; transition: all 0.2s; }
+  .pip.active { background: #FFD600; border-color: #FFD600; }
+
+  /* hansoku-make button at the bottom of each card — turns red when active */
+  .hansoku-btn { margin: 4px 20px 12px; width: calc(100% - 40px); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: rgba(255,255,255,0.3); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .hansoku-btn.active { background: #7f1d1d; color: white; border-color: #ef4444; }
+
+  /* winner banner — hidden until the match ends, then pops up big and yellow */
+  #winner-banner { display: none; background: #FFD600; color: #111; text-align: center; padding: 20px; border-radius: 16px; font-size: 1.8rem; font-weight: 900; letter-spacing: 0.05em; max-width: 700px; margin: 0 auto 20px; }
+
+  /* osae-komi and injury panels side by side */
+  .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto 20px; }
+  .panel { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 18px 20px; }
+  .panel-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; color: #555; margin-bottom: 12px; }
+
+  /* big number showing current pin hold seconds */
+  #ok-seconds { font-family: monospace; font-size: 3.5rem; font-weight: 900; text-align: center; margin-bottom: 8px; }
+
+  /* progress bars for osae-komi and injury — turn red when close to the limit */
+  .progress-bar { height: 6px; background: #30363d; border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+  .progress-fill { height: 100%; border-radius: 99px; background: #3b82f6; transition: width 0.3s; }
+  .progress-fill.warning { background: #ef4444; }
+
+  /* injury timer display */
+  #injury-display { font-family: monospace; font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 8px; }
+
+  /* buttons inside each panel */
+  .panel-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .panel-btns button { flex: 1; padding: 8px; font-size: 0.75rem; border-radius: 8px; }
+
+  /* bar with the declare winner and reset match buttons */
+  .actions-bar { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 16px 20px; max-width: 900px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+  /* match history log at the bottom */
+  .history-panel { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 18px 20px; max-width: 900px; margin: 0 auto 40px; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  #history-list { list-style: none; }
+  #history-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 0.8rem; }
+  .hist-action { font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.05em; }
+  .hist-player { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; background: #21262d; }
+  .hist-time   { font-family: monospace; color: #555; font-size: 0.7rem; }
+  #no-history  { color: #555; font-size: 0.8rem; text-align: center; padding: 20px 0; }
+
+  /* on smaller screens everything stacks instead of sitting side by side */
+  @media (max-width: 600px) {
+    .players-grid, .bottom-grid { grid-template-columns: 1fr; }
+    #timer-display { font-size: 4rem; }
+  }
+
+</style>
