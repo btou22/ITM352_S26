@@ -12,43 +12,43 @@
       <div class="score-row">
         <span class="score-label">Ippon</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('a','ippon',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('a','ippon','subtract')">−</button>
           <div class="score-val" id="a-ippon">0</div>
-          <button class="score-btn" onclick="updateScore('a','ippon',1)">+</button>
+          <button class="score-btn" onclick="updateScore('a','ippon','add')">+</button>
         </div>
       </div>
       <div class="score-row">
         <span class="score-label">Waza-ari</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('a','waza_ari',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('a','waza_ari','subtract')">−</button>
           <div class="score-val" id="a-waza_ari">0</div>
-          <button class="score-btn" onclick="updateScore('a','waza_ari',1)">+</button>
+          <button class="score-btn" onclick="updateScore('a','waza_ari','add')">+</button>
         </div>
       </div>
       <div class="score-row">
         <span class="score-label">Yuko</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('a','yuko',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('a','yuko','subtract')">−</button>
           <div class="score-val" id="a-yuko">0</div>
-          <button class="score-btn" onclick="updateScore('a','yuko',1)">+</button>
+          <button class="score-btn" onclick="updateScore('a','yuko','add')">+</button>
         </div>
       </div>
       <!-- shido uses pip circles instead of a number -->
       <div class="score-row">
         <span class="score-label">Shido</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('a','shido',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('a','shido','subtract')">−</button>
           <div class="shido-pips">
             <div class="pip" id="a-shido-0"></div>
             <div class="pip" id="a-shido-1"></div>
             <div class="pip" id="a-shido-2"></div>
           </div>
-          <button class="score-btn" onclick="updateScore('a','shido',1)">+</button>
+          <button class="score-btn" onclick="updateScore('a','shido','add')">+</button>
         </div>
       </div>
     </div>
     <!-- lights up red when hansoku-make is triggered -->
-    <button class="hansoku-btn" id="a-hansoku" onclick="updateScore('a','hansoku_make',1)">
+    <button class="hansoku-btn" id="a-hansoku" onclick="updateScore('a','hansoku_make','add')">
       ⚠ Hansoku-Make (Direct)
     </button>
   </div>
@@ -63,41 +63,41 @@
       <div class="score-row">
         <span class="score-label">Ippon</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('b','ippon',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('b','ippon','subtract')">−</button>
           <div class="score-val" id="b-ippon">0</div>
-          <button class="score-btn" onclick="updateScore('b','ippon',1)">+</button>
+          <button class="score-btn" onclick="updateScore('b','ippon','add')">+</button>
         </div>
       </div>
       <div class="score-row">
         <span class="score-label">Waza-ari</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('b','waza_ari',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('b','waza_ari','subtract')">−</button>
           <div class="score-val" id="b-waza_ari">0</div>
-          <button class="score-btn" onclick="updateScore('b','waza_ari',1)">+</button>
+          <button class="score-btn" onclick="updateScore('b','waza_ari','add')">+</button>
         </div>
       </div>
       <div class="score-row">
         <span class="score-label">Yuko</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('b','yuko',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('b','yuko','subtract')">−</button>
           <div class="score-val" id="b-yuko">0</div>
-          <button class="score-btn" onclick="updateScore('b','yuko',1)">+</button>
+          <button class="score-btn" onclick="updateScore('b','yuko','add')">+</button>
         </div>
       </div>
       <div class="score-row">
         <span class="score-label">Shido</span>
         <div class="score-controls">
-          <button class="score-btn" onclick="updateScore('b','shido',-1)">−</button>
+          <button class="score-btn" onclick="updateScore('b','shido','subtract')">−</button>
           <div class="shido-pips">
             <div class="pip" id="b-shido-0"></div>
             <div class="pip" id="b-shido-1"></div>
             <div class="pip" id="b-shido-2"></div>
           </div>
-          <button class="score-btn" onclick="updateScore('b','shido',1)">+</button>
+          <button class="score-btn" onclick="updateScore('b','shido','add')">+</button>
         </div>
       </div>
     </div>
-    <button class="hansoku-btn" id="b-hansoku" onclick="updateScore('b','hansoku_make',1)">
+    <button class="hansoku-btn" id="b-hansoku" onclick="updateScore('b','hansoku_make','add')">
       ⚠ Hansoku-Make (Direct)
     </button>
   </div>

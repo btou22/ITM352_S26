@@ -110,7 +110,7 @@ def check_winner():
     if score_b["waza_ari"] >= 2:
         return "b"
 
-    # Hansoku-make is a disqualification  the other player wins (Ethan)
+    # Hansoku-make is a disqualification the other player wins (Ethan)
     if score_a["hansoku_make"]:
         return "b"
     if score_b["hansoku_make"]:
@@ -121,10 +121,11 @@ def check_winner():
 
 
 def apply_score(player, field, delta):
-    # This function actually changes a player's score. 
+    # This function actually changes a player's score.
     # delta is either +1 (adding a point) or -1 (removing a point if it was a mistake).
     # We use limits to make sure scores never go above the legal maximum
     # or below zero (Cass)
+    score = get_score(player)
 
     # Hansoku-make is a special case, it just flips on or off like a switch
     if field == "hansoku_make":
@@ -133,10 +134,12 @@ def apply_score(player, field, delta):
 
     # These are the maximum values allowed for each score type in judo (Cass)
     limits = {"ippon": 1, "waza_ari": 2, "yuko": 99, "shido": 3}
+    if field not in limits:
+        return
     current = score[field]
     score[field] = max(0, min(limits[field], current + delta))
 
-    # IJF rule: if a player gets 3 shido (penalties), they are automatically disqualified (Cass)
+    # 3 shido automatically triggers disqualification
     if field == "shido" and score["shido"] >= 3:
         score["hansoku_make"] = True
 
@@ -174,16 +177,20 @@ def set_players():
     return jsonify({"success": True})
 
 
-@app.route("/score/<player>/<field>/<int:delta>", methods=["POST"])
-def score(player, field, delta):
+@app.route("/score/<player>/<field>/<direction>", methods=["POST"])
+def score(player, field, direction):
     # This route handles any score change, adding or removing any point type.
-    # The player, field, and delta come directly from the URL.
-    # For example: /score/a/ippon/1 adds an ippon to player A.
-    # We validate the inputs first to make sure nothing invalid gets through. (Ethan)
+    # We use 'add' and 'subtract' in the URL instead of 1 and -1
+    # because negative numbers break the URL format. (Ethan)
     if match_state["status"] == "completed":
         return jsonify({"error": "Match is over"}), 400
     if player not in ("a", "b") or field not in ("ippon", "waza_ari", "yuko", "shido", "hansoku_make"):
         return jsonify({"error": "Invalid input"}), 400
+    if direction not in ("add", "subtract"):
+        return jsonify({"error": "Invalid direction"}), 400
+
+    # convert the word into a number so apply_score can use it
+    delta = 1 if direction == "add" else -1
 
     apply_score(player, field, delta)
     record_action(
@@ -286,7 +293,7 @@ def set_duration():
 
 @app.route("/golden_score", methods=["POST"])
 def golden_score():
-    # Switches the match into golden score mode (sudden death overtime) - Ethan .
+    # Switches the match into golden score mode (sudden death overtime) - Ethan.
     # This happens when regulation time ends with no winner.
     # The timer resets to 0 and starts counting up until someone scores.
     match_state["timer"]["golden_score"] = True
