@@ -444,7 +444,7 @@ def undo():
 # RUN THE APP
 # This starts the Flask development server when you run the file directly.
 # debug=True means the server will automatically restart when you save changes, (Ethan)
-# which is helpful while you are still building and testing the app.
+# which is helpful while you are still building and testing the app (Brandon).
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
