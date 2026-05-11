@@ -1,8 +1,12 @@
 # Libraries to run the app.
 # Flask runs the website, render_template loads our HTML page, jsonify sends data to the browser, request reads data sent from the browser.
 # Lets us track seconds for the timers. (Brandon)
+# sqlite3 is the database library built into Python — no installation needed (Brandon)
+# math is used to calculate bracket sizes and bye rounds (Brandon)
 from flask import Flask, render_template, jsonify, request
 import time
+import sqlite3
+import math
 
 # This creates the Flask app itself and everything runs through this one line.
 app = Flask(__name__)
@@ -142,6 +146,122 @@ def apply_score(player, field, delta):
     # 3 shido automatically triggers disqualification
     if field == "shido" and score["shido"] >= 3:
         score["hansoku_make"] = True
+
+
+# ─── Tournament Helper Functions ───────────────────────────────────────────
+
+def get_db():
+    # connects to the tournament database
+    # row_factory lets us access columns by name instead of index number
+    # timeout gives SQLite 10 seconds to wait if the database is busy
+    # this fixes the "database is locked" error we were getting (Brandon)
+    conn = sqlite3.connect('tournament.db', timeout=10)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def generate_bracket(tournament_id):
+    # generates the first round of matches from the participant list
+    # handles byes automatically for odd numbers of players
+    conn = get_db()
+    c = conn.cursor()
+
+    # get all participants for this tournament
+    participants = c.execute(
+        'SELECT * FROM participants WHERE tournament_id = ?', (tournament_id,)
+    ).fetchall()
+
+    players = list(participants)
+    num_players = len(players)
+
+    # figure out the next power of 2 so we know how many byes we need
+    # for example 5 players needs 8 slots so 3 byes are needed
+    next_power = 2 ** math.ceil(math.log2(num_players)) if num_players > 1 else 2
+    num_byes = next_power - num_players
+
+    # add None placeholders for bye slots
+    for _ in range(num_byes):
+        players.append(None)
+
+    # create round 1 matches
+    match_number = 1
+    for i in range(0, len(players), 2):
+        player_a = players[i]
+        player_b = players[i + 1]
+
+        is_bye = 1 if player_a is None or player_b is None else 0
+        winner_id = None
+
+        # if it's a bye automatically set the real player as the winner
+        if is_bye:
+            winner_id = player_a['id'] if player_b is None else player_b['id']
+
+        c.execute('''
+            INSERT INTO matches (tournament_id, round_number, match_number, player_a_id, player_b_id, winner_id, is_bye, confirmed)
+            VALUES (?, 1, ?, ?, ?, ?, ?, ?)
+        ''', (
+            tournament_id,
+            match_number,
+            player_a['id'] if player_a else None,
+            player_b['id'] if player_b else None,
+            winner_id,
+            is_bye,
+            1 if is_bye else 0
+        ))
+        match_number += 1
+
+    conn.commit()
+    conn.close()
+
+
+def advance_winners(tournament_id, round_number):
+    # checks if all matches in a round are confirmed
+    # if yes it creates the next round matchups from the winners
+    conn = get_db()
+    c = conn.cursor()
+
+    # get all matches for this round
+    matches = c.execute(
+        'SELECT * FROM matches WHERE tournament_id = ? AND round_number = ?',
+        (tournament_id, round_number)
+    ).fetchall()
+
+    # check if all matches in the round are done
+    all_confirmed = all(m['confirmed'] == 1 for m in matches)
+    if not all_confirmed:
+        conn.close()
+        return False
+
+    # get all winners from this round
+    winners = [m['winner_id'] for m in matches if m['winner_id']]
+
+    # if only one winner left they are the tournament champion
+    if len(winners) == 1:
+        conn.close()
+        return True
+
+    # create next round matches from the winners
+    next_round = round_number + 1
+    match_number = 1
+    for i in range(0, len(winners), 2):
+        player_a = winners[i]
+        player_b = winners[i + 1] if i + 1 < len(winners) else None
+        is_bye = 1 if player_b is None else 0
+        winner_id = player_a if is_bye else None
+
+        c.execute('''
+            INSERT INTO matches (tournament_id, round_number, match_number, player_a_id, player_b_id, winner_id, is_bye, confirmed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            tournament_id, next_round, match_number,
+            player_a, player_b, winner_id, is_bye,
+            1 if is_bye else 0
+        ))
+        match_number += 1
+
+    conn.commit()
+    conn.close()
+    return True
 
 
 # ROUTES
@@ -438,6 +558,143 @@ def undo():
     if match_state["history"]:
         match_state["history"].pop(0)
     return jsonify(match_state)
+
+
+# ─── Tournament Routes ──────────────────────────────────────────────────────
+# These routes handle everything related to the tournament bracket system
+# They use SQLite to store tournament data permanently (Brandon)
+
+@app.route("/tournament")
+def tournament():
+    # loads the tournament bracket page
+    return render_template("tournament.html")
+
+
+@app.route("/tournament/create", methods=["POST"])
+def create_tournament():
+    # creates a new tournament with a name
+    data = request.json
+    name = data.get("name", "My Tournament")
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("INSERT INTO tournaments (name) VALUES (?)", (name,))
+    tournament_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "tournament_id": tournament_id})
+
+
+@app.route("/tournament/<int:tournament_id>/register", methods=["POST"])
+def register_player(tournament_id):
+    # adds a player to the tournament
+    data = request.json
+    name = data.get("name", "")
+    club = data.get("club", "")
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO participants (tournament_id, name, club) VALUES (?, ?, ?)",
+        (tournament_id, name, club)
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+
+@app.route("/tournament/<int:tournament_id>/start", methods=["POST"])
+def start_tournament(tournament_id):
+    # generates the bracket from all registered players
+    # needs at least 2 players to start
+    conn = get_db()
+    c = conn.cursor()
+    count = c.execute(
+        "SELECT COUNT(*) FROM participants WHERE tournament_id = ?",
+        (tournament_id,)
+    ).fetchone()[0]
+    conn.close()
+
+    if count < 2:
+        return jsonify({"error": "Need at least 2 players"}), 400
+
+    generate_bracket(tournament_id)
+    return jsonify({"success": True})
+
+
+@app.route("/tournament/<int:tournament_id>/bracket")
+def get_bracket(tournament_id):
+    # returns the full bracket data so the page can display it
+    conn = get_db()
+    c = conn.cursor()
+
+    matches = c.execute('''
+        SELECT m.*,
+            pa.name as player_a_name, pa.club as player_a_club,
+            pb.name as player_b_name, pb.club as player_b_club,
+            w.name as winner_name
+        FROM matches m
+        LEFT JOIN participants pa ON m.player_a_id = pa.id
+        LEFT JOIN participants pb ON m.player_b_id = pb.id
+        LEFT JOIN participants w ON m.winner_id = w.id
+        WHERE m.tournament_id = ?
+        ORDER BY m.round_number, m.match_number
+    ''', (tournament_id,)).fetchall()
+
+    participants = c.execute(
+        "SELECT * FROM participants WHERE tournament_id = ?",
+        (tournament_id,)
+    ).fetchall()
+
+    conn.close()
+
+    return jsonify({
+        "matches": [dict(m) for m in matches],
+        "participants": [dict(p) for p in participants]
+    })
+
+
+@app.route("/tournament/match/<int:match_id>/confirm", methods=["POST"])
+def confirm_winner(match_id):
+    # referee manually confirms the winner of a match
+    # then checks if the whole round is done and advances winners if so
+    data = request.json
+    winner_id = data.get("winner_id")
+    if not winner_id:
+        return jsonify({"error": "Winner ID required"}), 400
+
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute(
+        "UPDATE matches SET winner_id = ?, confirmed = 1 WHERE id = ?",
+        (winner_id, match_id)
+    )
+
+    # get the tournament and round for this match so we can advance winners
+    match = c.execute(
+        "SELECT * FROM matches WHERE id = ?", (match_id,)
+    ).fetchone()
+
+    conn.commit()
+    conn.close()
+
+    # try to advance winners to the next round
+    advance_winners(match['tournament_id'], match['round_number'])
+
+    return jsonify({"success": True})
+
+
+@app.route("/tournament/list")
+def list_tournaments():
+    # returns all tournaments so the user can pick one to view
+    conn = get_db()
+    c = conn.cursor()
+    tournaments = c.execute(
+        "SELECT * FROM tournaments ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    return jsonify({"tournaments": [dict(t) for t in tournaments]})
 
 
 # ────────────────────────────────────────────────────────────────────────────
