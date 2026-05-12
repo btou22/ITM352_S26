@@ -13,8 +13,10 @@
       <span>0s</span><span>10s Yuko</span><span>15s W-A</span><span>20s Ippon</span>
     </div>
     <div class="panel-btns">
-      <button class="btn btn-green"   onclick="startOsaeKomi('a')">Blue Pin</button>
-      <button class="btn btn-red"     onclick="startOsaeKomi('b')">White Pin</button>
+      <!-- blue themed button for blue player -->
+      <button class="btn" style="background:#1e3a5f; color:#60a5fa;" onclick="startOsaeKomi('a')">Blue Pin</button>
+      <!-- white themed button for white player -->
+      <button class="btn" style="background:#2a2a2a; color:#e0e0e0; border:1px solid #aaaaaa;" onclick="startOsaeKomi('b')">White Pin</button>
       <button class="btn btn-outline" onclick="stopOsaeKomi()">Stop</button>
       <button class="btn btn-outline" onclick="resetOsaeKomi()">Reset</button>
     </div>
@@ -29,8 +31,10 @@
     </div>
     <div style="text-align:right; font-size:0.65rem; color:#555;">max 5:00</div>
     <div class="panel-btns">
-      <button class="btn btn-green"   onclick="startInjury('a')">Blue</button>
-      <button class="btn btn-red"     onclick="startInjury('b')">White</button>
+      <!-- blue themed button for blue player -->
+      <button class="btn" style="background:#1e3a5f; color:#60a5fa;" onclick="startInjury('a')">Blue</button>
+      <!-- white themed button for white player -->
+      <button class="btn" style="background:#2a2a2a; color:#e0e0e0; border:1px solid #aaaaaa;" onclick="startInjury('b')">White</button>
       <button class="btn btn-outline" onclick="stopInjury()">Stop</button>
       <button class="btn btn-outline" onclick="resetInjury()">Reset</button>
     </div>

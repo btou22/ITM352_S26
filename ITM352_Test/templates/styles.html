@@ -71,15 +71,21 @@
   .players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto 20px; }
   .player-card { border-radius: 16px; overflow: hidden; border: 1px solid transparent; }
   .player-card.blue  { background: #0a1628; border-color: #1e3a5f; }
-  .player-card.white { background: #1a0808; border-color: #5f1e1e; }
+
+  /* changed white panel from red theme to grey/white theme (Brandon) */
+  .player-card.white { background: #1a1a1a; border-color: #aaaaaa; }
 
   /* player name section at the top of each card */
   .player-header { padding: 16px 20px 12px; }
   .player-card.blue  .player-header { background: #0d1f3c; }
-  .player-card.white .player-header { background: #220a0a; }
+
+  /* changed white header from dark red to dark grey (Brandon) */
+  .player-card.white .player-header { background: #2a2a2a; }
   .player-name { font-size: 1.4rem; font-weight: 900; letter-spacing: 0.05em; }
   .player-card.blue  .player-name { color: #60a5fa; }
-  .player-card.white .player-name { color: #f87171; }
+
+  /* changed white player name from red to light grey so it looks white themed (Brandon) */
+  .player-card.white .player-name { color: #e0e0e0; }
   .player-club { font-size: 0.75rem; color: #555; margin-top: 2px; }
 
   /* each scoring category gets its own row with minus value and plus */

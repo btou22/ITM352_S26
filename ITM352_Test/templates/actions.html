@@ -1,6 +1,9 @@
 <!-- (Brandon)buttons to manually call a winner or start a new match :D Brandon -->
 <div class="actions-bar">
-  <button class="btn btn-green" onclick="declareWinner('a')" id="declare-a">Blue Wins</button>
-  <button class="btn btn-green" onclick="declareWinner('b')" id="declare-b">White Wins</button>
-  <button class="btn btn-red"   onclick="resetMatch()">🔄 Reset Match</button>
+  <!-- blue themed button for blue player winning -->
+  <button class="btn" style="background:#1e3a5f; color:#60a5fa;" onclick="declareWinner('a')" id="declare-a">Blue Wins</button>
+  <!-- white themed button for white player winning -->
+  <button class="btn" style="background:#2a2a2a; color:#e0e0e0; border:1px solid #aaaaaa;" onclick="declareWinner('b')" id="declare-b">White Wins</button>
+  <!-- reset stays red so its easy to spot and hard to accidentally miss (Brandon) -->
+  <button class="btn btn-red" onclick="resetMatch()">🔄 Reset Match</button>
 </div>
