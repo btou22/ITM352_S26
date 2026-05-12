@@ -88,12 +88,25 @@
       transition: opacity 0.2s;
     }
     .btn:hover { opacity: 0.85; }
-    .btn-yellow { background: #FFD600; color: #111; }
-    .btn-green  { background: #238636; color: white; }
-    .btn-red    { background: #da3633; color: white; }
+    .btn-yellow  { background: #FFD600; color: #111; }
+    .btn-green   { background: #238636; color: white; }
+    .btn-red     { background: #da3633; color: white; }
     .btn-outline { background: transparent; border: 1px solid #30363d; color: white; }
 
-    /* :D (brandon )form row layout */
+    /* small delete button used in lists */
+    .btn-delete {
+      padding: 4px 10px;
+      background: #da3633;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-delete:hover { opacity: 0.8; }
+
+    /* :D (brandon) form row layout */
     .form-row {
       display: flex;
       gap: 10px;
@@ -102,7 +115,7 @@
       margin-bottom: 12px;
     }
 
-    /* Under this poing is is tournament lists  (Brandon)*/
+    /* Under this point is tournament lists (Brandon) */
     .tournament-item {
       display: flex;
       justify-content: space-between;
@@ -110,6 +123,7 @@
       padding: 10px 0;
       border-bottom: 1px solid #21262d;
       font-size: 0.9rem;
+      gap: 10px;
     }
     .tournament-item:last-child { border-bottom: none; }
 
@@ -124,6 +138,7 @@
       font-size: 0.85rem;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
     .player-list li:last-child { border-bottom: none; }
 
@@ -281,11 +296,16 @@
             list.innerHTML = '<p style="color:#555; font-size:0.8rem;">No tournaments yet — create one above!</p>';
             return;
           }
+          // each tournament row now has a select button and a delete button
           list.innerHTML = data.tournaments.map(t => `
             <div class="tournament-item">
               <span>${t.name}</span>
-              <button class="btn btn-outline" style="padding:6px 14px; font-size:0.75rem;"
-                onclick="selectTournament(${t.id}, '${t.name}')">Select</button>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-outline" style="padding:6px 14px; font-size:0.75rem;"
+                  onclick="selectTournament(${t.id}, '${t.name}')">Select</button>
+                <button class="btn-delete"
+                  onclick="deleteTournament(${t.id}, '${t.name}')">Delete</button>
+              </div>
             </div>
           `).join('');
         });
@@ -311,6 +331,28 @@
       });
     }
 
+    // deletes a tournament and all its players and matches
+    function deleteTournament(id, name) {
+      if (!confirm(`Delete "${name}" and all its data? This cannot be undone.`)) return;
+
+      fetch(`/tournament/${id}/delete`, {
+        method: 'POST'
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          // if we deleted the currently selected tournament reset the page
+          if (currentTournamentId === id) {
+            currentTournamentId = null;
+            document.getElementById('register-section').style.display = 'none';
+            document.getElementById('bracket-section').style.display = 'none';
+            document.getElementById('champion-banner').style.display = 'none';
+          }
+          loadTournaments();
+        }
+      });
+    }
+
     // selects a tournament and shows the player registration section
     function selectTournament(id, name) {
       currentTournamentId = id;
@@ -331,13 +373,29 @@
             list.innerHTML = '<li style="color:#555;">No players registered yet</li>';
             return;
           }
+          // each player row now has a delete button next to their name
           list.innerHTML = data.participants.map(p => `
             <li>
-              <span>${p.name}</span>
-              <span class="club">${p.club || ''}</span>
+              <span>${p.name} <span style="color:#555; font-size:0.75rem;">${p.club || ''}</span></span>
+              <button class="btn-delete" onclick="deletePlayer(${p.id})">Remove</button>
             </li>
           `).join('');
         });
+    }
+
+    // removes a player from the tournament
+    function deletePlayer(playerId) {
+      if (!confirm('Remove this player from the tournament?')) return;
+
+      fetch(`/tournament/player/${playerId}/delete`, {
+        method: 'POST'
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          loadPlayers();
+        }
+      });
     }
 
     // adds a new player to the tournament

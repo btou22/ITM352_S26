@@ -163,55 +163,64 @@ def get_db():
 def generate_bracket(tournament_id):
     # generates the first round of matches from the participant list
     # handles byes automatically for odd numbers of players
+    # we use try/finally to make sure the connection always closes
+    # even if something goes wrong (Brandon)
     conn = get_db()
     c = conn.cursor()
 
-    # get all participants for this tournament
-    participants = c.execute(
-        'SELECT * FROM participants WHERE tournament_id = ?', (tournament_id,)
-    ).fetchall()
+    try:
+        # get all participants for this tournament
+        participants = c.execute(
+            'SELECT * FROM participants WHERE tournament_id = ?', (tournament_id,)
+        ).fetchall()
 
-    players = list(participants)
-    num_players = len(players)
+        players = list(participants)
+        num_players = len(players)
 
-    # figure out the next power of 2 so we know how many byes we need
-    # for example 5 players needs 8 slots so 3 byes are needed
-    next_power = 2 ** math.ceil(math.log2(num_players)) if num_players > 1 else 2
-    num_byes = next_power - num_players
+        # figure out the next power of 2 so we know how many byes we need
+        # for example 6 players needs 8 slots so 2 byes are added
+        next_power = 2 ** math.ceil(math.log2(num_players)) if num_players > 1 else 2
+        num_byes = next_power - num_players
 
-    # add None placeholders for bye slots
-    for _ in range(num_byes):
-        players.append(None)
+        # add None placeholders for bye slots
+        for _ in range(num_byes):
+            players.append(None)
 
-    # create round 1 matches
-    match_number = 1
-    for i in range(0, len(players), 2):
-        player_a = players[i]
-        player_b = players[i + 1]
+        # create round 1 matches
+        match_number = 1
+        for i in range(0, len(players), 2):
+            player_a = players[i]
+            player_b = players[i + 1]
 
-        is_bye = 1 if player_a is None or player_b is None else 0
-        winner_id = None
+            is_bye = 1 if player_a is None or player_b is None else 0
+            winner_id = None
 
-        # if it's a bye automatically set the real player as the winner
-        if is_bye:
-            winner_id = player_a['id'] if player_b is None else player_b['id']
+            # safely find the winner for bye matches
+            # only the real player (not None) gets the automatic win
+            if is_bye:
+                if player_a is not None:
+                    winner_id = player_a['id']
+                elif player_b is not None:
+                    winner_id = player_b['id']
 
-        c.execute('''
-            INSERT INTO matches (tournament_id, round_number, match_number, player_a_id, player_b_id, winner_id, is_bye, confirmed)
-            VALUES (?, 1, ?, ?, ?, ?, ?, ?)
-        ''', (
-            tournament_id,
-            match_number,
-            player_a['id'] if player_a else None,
-            player_b['id'] if player_b else None,
-            winner_id,
-            is_bye,
-            1 if is_bye else 0
-        ))
-        match_number += 1
+            c.execute('''
+                INSERT INTO matches (tournament_id, round_number, match_number, player_a_id, player_b_id, winner_id, is_bye, confirmed)
+                VALUES (?, 1, ?, ?, ?, ?, ?, ?)
+            ''', (
+                tournament_id,
+                match_number,
+                player_a['id'] if player_a is not None else None,
+                player_b['id'] if player_b is not None else None,
+                winner_id,
+                is_bye,
+                1 if is_bye else 0
+            ))
+            match_number += 1
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        # always close the connection even if something goes wrong
+        conn.close()
 
 
 def advance_winners(tournament_id, round_number):
@@ -220,48 +229,49 @@ def advance_winners(tournament_id, round_number):
     conn = get_db()
     c = conn.cursor()
 
-    # get all matches for this round
-    matches = c.execute(
-        'SELECT * FROM matches WHERE tournament_id = ? AND round_number = ?',
-        (tournament_id, round_number)
-    ).fetchall()
+    try:
+        # get all matches for this round
+        matches = c.execute(
+            'SELECT * FROM matches WHERE tournament_id = ? AND round_number = ?',
+            (tournament_id, round_number)
+        ).fetchall()
 
-    # check if all matches in the round are done
-    all_confirmed = all(m['confirmed'] == 1 for m in matches)
-    if not all_confirmed:
-        conn.close()
-        return False
+        # check if all matches in the round are done
+        all_confirmed = all(m['confirmed'] == 1 for m in matches)
+        if not all_confirmed:
+            return False
 
-    # get all winners from this round
-    winners = [m['winner_id'] for m in matches if m['winner_id']]
+        # get all winners from this round
+        winners = [m['winner_id'] for m in matches if m['winner_id']]
 
-    # if only one winner left they are the tournament champion
-    if len(winners) == 1:
-        conn.close()
+        # if only one winner left they are the tournament champion
+        if len(winners) == 1:
+            return True
+
+        # create next round matches from the winners
+        next_round = round_number + 1
+        match_number = 1
+        for i in range(0, len(winners), 2):
+            player_a = winners[i]
+            player_b = winners[i + 1] if i + 1 < len(winners) else None
+            is_bye = 1 if player_b is None else 0
+            winner_id = player_a if is_bye else None
+
+            c.execute('''
+                INSERT INTO matches (tournament_id, round_number, match_number, player_a_id, player_b_id, winner_id, is_bye, confirmed)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                tournament_id, next_round, match_number,
+                player_a, player_b, winner_id, is_bye,
+                1 if is_bye else 0
+            ))
+            match_number += 1
+
+        conn.commit()
         return True
-
-    # create next round matches from the winners
-    next_round = round_number + 1
-    match_number = 1
-    for i in range(0, len(winners), 2):
-        player_a = winners[i]
-        player_b = winners[i + 1] if i + 1 < len(winners) else None
-        is_bye = 1 if player_b is None else 0
-        winner_id = player_a if is_bye else None
-
-        c.execute('''
-            INSERT INTO matches (tournament_id, round_number, match_number, player_a_id, player_b_id, winner_id, is_bye, confirmed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            tournament_id, next_round, match_number,
-            player_a, player_b, winner_id, is_bye,
-            1 if is_bye else 0
-        ))
-        match_number += 1
-
-    conn.commit()
-    conn.close()
-    return True
+    finally:
+        # always close the connection even if something goes wrong
+        conn.close()
 
 
 # ROUTES
@@ -607,6 +617,8 @@ def register_player(tournament_id):
 def start_tournament(tournament_id):
     # generates the bracket from all registered players
     # needs at least 2 players to start
+    # we count and close the connection before calling generate_bracket
+    # so we never have two connections open at the same time (Brandon)
     conn = get_db()
     c = conn.cursor()
     count = c.execute(
@@ -618,8 +630,11 @@ def start_tournament(tournament_id):
     if count < 2:
         return jsonify({"error": "Need at least 2 players"}), 400
 
-    generate_bracket(tournament_id)
-    return jsonify({"success": True})
+    try:
+        generate_bracket(tournament_id)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/tournament/<int:tournament_id>/bracket")
@@ -695,6 +710,32 @@ def list_tournaments():
     ).fetchall()
     conn.close()
     return jsonify({"tournaments": [dict(t) for t in tournaments]})
+
+
+@app.route("/tournament/<int:tournament_id>/delete", methods=["POST"])
+def delete_tournament(tournament_id):
+    # deletes a tournament and all its players and matches from the database
+    # we delete matches and participants first before deleting the tournament itself
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM matches WHERE tournament_id = ?", (tournament_id,))
+    c.execute("DELETE FROM participants WHERE tournament_id = ?", (tournament_id,))
+    c.execute("DELETE FROM tournaments WHERE id = ?", (tournament_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+
+@app.route("/tournament/player/<int:player_id>/delete", methods=["POST"])
+def delete_player(player_id):
+    # removes a single player from the tournament
+    # only works cleanly before the bracket is generated
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM participants WHERE id = ?", (player_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
 
 
 # ────────────────────────────────────────────────────────────────────────────
