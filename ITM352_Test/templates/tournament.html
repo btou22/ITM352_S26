@@ -457,12 +457,25 @@
           });
 
           // check if there is a champion
+          // only announce when the last round has exactly 1 match
+          // that match is confirmed, has a winner, and is not a bye
+          // this prevents early champion announcements during the bracket (Brandon)
           const lastRound = Math.max(...Object.keys(rounds).map(Number));
-          const finalMatch = rounds[lastRound][0];
-          if (finalMatch && finalMatch.confirmed && finalMatch.winner_name) {
+          const lastRoundMatches = rounds[lastRound];
+          const finalMatch = lastRoundMatches[0];
+          if (
+            finalMatch &&
+            finalMatch.confirmed &&
+            finalMatch.winner_name &&
+            !finalMatch.is_bye &&
+            lastRoundMatches.length === 1
+          ) {
             const banner = document.getElementById('champion-banner');
             banner.textContent = `🏆 Tournament Champion: ${finalMatch.winner_name}`;
             banner.style.display = 'block';
+          } else {
+            // hide the banner if conditions are not met yet
+            document.getElementById('champion-banner').style.display = 'none';
           }
 
           // build the bracket HTML round by round
